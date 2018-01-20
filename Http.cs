@@ -25,13 +25,16 @@ namespace nelke
         public HttpWebRequest request;
         public HttpWebResponse response;
         public string body;
-
+        public int nShow;
+        public int nBuyTimes;
         
         public RequestState()
         {
             request = null;
             response = null;
             body = @"";
+            nShow = 0;
+            nBuyTimes = 0;
         }
     }
     
@@ -39,10 +42,10 @@ namespace nelke
     {
         public string strAccount = @"";
         public string strPassword = @"";
+        public int nIndex = 0;
         public Thread thread;
-        bool bLoginSuccess = false;
+        bool bLoginSuccess;
 
-        RequestState requestState;
         CookieContainer cookieContainer = new CookieContainer();
         Encoding requestEncoding = Encoding.GetEncoding("utf-8");
 
@@ -155,24 +158,61 @@ namespace nelke
                 allDone.Set();
             }
         }
-        
+
+        private void RespBuyCallback(IAsyncResult asynchronousResult)
+        {
+            try
+            {
+                // State of request is asynchronous.
+                RequestState myRequestState = (RequestState)asynchronousResult.AsyncState;
+                HttpWebRequest myHttpWebRequest = myRequestState.request;
+                myRequestState.response = (HttpWebResponse)myHttpWebRequest.EndGetResponse(asynchronousResult);
+
+                GetBody(myRequestState);
+                if (myRequestState.body.IndexOf("code") >= 0)
+                {
+                    JObject joBody = (JObject)JsonConvert.DeserializeObject(myRequestState.body);
+                    if (string.Compare((string)joBody["code"], "1", true) == 0)
+                    {
+                        Program.form1.UpdateDataGridView(strAccount, Column.Buy1 + myRequestState.nShow * 2, string.Format("{0}:成功", myRequestState.nBuyTimes));
+
+                        // confirm
+                    }
+                    else
+                    {
+                        Program.form1.UpdateDataGridView(strAccount, Column.Buy1 + myRequestState.nShow * 2, string.Format("{0}:{1}:{2}", myRequestState.nBuyTimes, (string)joBody["code"], (string)joBody["msg"]));
+                    }
+                }
+                else 
+                {
+                    Program.form1.UpdateDataGridView(strAccount, Column.Buy1 + myRequestState.nShow * 2, string.Format("{0}:失败}", myRequestState.nBuyTimes));
+                }
+            }
+            catch (WebException e)
+            {
+                Console.WriteLine("\nRespCallback Exception raised!");
+                Console.WriteLine("\nMessage:{0}", e.Message);
+                Console.WriteLine("\nStatus:{0}", e.Status);
+                allDone.Set();
+            }
+        }
 
         public void Run()
         {
             allDone = new ManualResetEvent(false);
-            bLoginSuccess = false;
-            requestState = new RequestState();
             cookieContainer = new CookieContainer();
             requestEncoding = Encoding.GetEncoding("utf-8");
 
             int nLoginTimes = 1;
-            while(true)
+            bLoginSuccess = false;
+            while (true)
             {
                 Program.form1.UpdateDataGridView(strAccount, Column.Login, string.Format("开始登录:{0}", nLoginTimes));
                 try
                 {
                     allDone.Reset();
 
+                    RequestState requestState = new RequestState();
                     ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
                     requestState.request = WebRequest.Create(@"http://ticket.nelke.cn/nelke/ticket/pc/login.jsp ") as HttpWebRequest;
                     requestState.request.ProtocolVersion = HttpVersion.Version11;
@@ -218,8 +258,57 @@ namespace nelke
                     Thread.Sleep(1);
             }
 
+            int nBuyTimes = 1;
+            while ((DateTime.Now <= AllPlayers.dtEndTime))
+            {
 
+                for (int nShow = 0; nShow < AllPlayers.listTicketData.Count(); nShow++)
+                {
+                    try
+                    {
+                        int nProductId = nIndex % AllPlayers.listTicketData[nShow].productId.Count();
 
+                        Program.form1.UpdateDataGridView(strAccount, Column.Buy1 + nShow * 2, string.Format("{0}:{1}", nBuyTimes, AllPlayers.listTicketData[nShow].productId[nProductId]));
+                        ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
+                        RequestState requestState = new RequestState();
+                        requestState.nShow = nShow;
+                        requestState.nBuyTimes = nBuyTimes;
+                        requestState.request = WebRequest.Create(@"http://ticket.nelke.cn/nelke/order/m/buy") as HttpWebRequest;
+                        requestState.request.ProtocolVersion = HttpVersion.Version11;
+                        requestState.request.Method = "POST";
+                        requestState.request.Headers.Add("Origin", "http://ticket.nelke.cn");
+                        requestState.request.Referer = string.Format("http://ticket.nelke.cn/nelke/ticket/pc/performance.jsp?id={0}&region={1}", AllPlayers.nId, AllPlayers.nRegion);
+                        requestState.request.Headers.Add("Accept-Language", "zh-Hans-CN,zh-Hans;q=0.5");
+                        requestState.request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299";
+                        requestState.request.ContentType = "application/json";
+                        requestState.request.Accept = "application/json, text/javascript, */*; q=0.01";
+                        requestState.request.Headers.Add("X-Requested-With", "XMLHttpRequest");
+                        requestState.request.Headers.Add("Accept-Encoding", "gzip, deflate");
+                        requestState.request.Headers.Add("Pragma", "no-cache");
+                        requestState.request.CookieContainer = cookieContainer;
+
+                        StringBuilder buffer = new StringBuilder();
+                        buffer.AppendFormat(@"[{{""productId"":{0},""quantity"":""{1}""}}]", AllPlayers.listTicketData[nShow].productId[nProductId], AllPlayers.listTicketData[nShow].quantity);
+                        Byte[] data = requestEncoding.GetBytes(buffer.ToString());
+                        using (Stream stream = requestState.request.GetRequestStream())
+                        {
+                            stream.Write(data, 0, data.Length);
+                        } 
+                       
+                        IAsyncResult result = (IAsyncResult)requestState.request.BeginGetResponse(new AsyncCallback(RespBuyCallback), requestState);
+                    }
+                    catch (WebException e)
+                    {
+                        Console.WriteLine("\nRespCallback Exception raised!");
+                        Console.WriteLine("\nMessage:{0}", e.Message);
+                        Console.WriteLine("\nStatus:{0}", e.Status);
+                    }
+                }
+
+                nBuyTimes++;
+                if (AllPlayers.nInterval > 0)
+                    Thread.Sleep(AllPlayers.nInterval);
+            }
         }
     };
 
@@ -249,6 +338,7 @@ namespace nelke
             JObject joInfo = (JObject)JsonConvert.DeserializeObject(arrayConfig[0]);
             dtStartTime = DateTime.Parse((string)joInfo["StartTime"]);
             dtEndTime = DateTime.Parse((string)joInfo["EndTime"]);
+            nInterval = (int)joInfo["interval"];
             nId = (int)joInfo["id"];
             nRegion = (int)joInfo["region"];
             listTicketData = new List<TicketData>();
@@ -270,6 +360,7 @@ namespace nelke
 
             listPlayer = new List<Player>();
             string[] arrayText = File.ReadAllLines(szAccountFileName);
+            int nIndex = 0;
             for (int i = 0; i < arrayText.Length; ++i)
             {
                 string[] arrayParam = arrayText[i].Split(new char[] { ',' });
@@ -279,6 +370,7 @@ namespace nelke
                     player.strAccount = arrayParam[1];
                     player.strPassword = arrayParam[2];
                     player.thread = new Thread(new ThreadStart(player.Run));
+                    player.nIndex = nIndex++;
                     listPlayer.Add(player);
                     Program.form1.dataGridViewInfo_AddRow(arrayParam[1]);
                 }
