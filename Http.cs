@@ -22,27 +22,15 @@ namespace nelke
     public class RequestState
     {
         // This class stores the State of the request.
-        const int BUFFER_SIZE = 1024;
-        public StringBuilder requestData;
-        public byte[] BufferRead;
         public HttpWebRequest request;
         public HttpWebResponse response;
-        public WebHeaderCollection headers;
-        public Stream streamResponse;
-        public CookieContainer cookieContainer;
-        public Encoding requestEncoding;
         public string body;
 
         
         public RequestState()
         {
-            BufferRead = new byte[BUFFER_SIZE];
-            requestData = new StringBuilder("");
             request = null;
-            streamResponse = null;
-            headers = null;
-            cookieContainer = new CookieContainer();
-            requestEncoding = Encoding.GetEncoding("utf-8");
+            response = null;
             body = @"";
         }
     }
@@ -55,13 +43,15 @@ namespace nelke
         bool bLoginSuccess = false;
 
         RequestState requestState;
+        CookieContainer cookieContainer = new CookieContainer();
+        Encoding requestEncoding = Encoding.GetEncoding("utf-8");
+
         ManualResetEvent allDone;
 
         private string GetBody(HttpWebResponse response)
         {
             string body = @"";
             System.IO.StreamReader reader = null;
-            Encoding requestEncoding = Encoding.GetEncoding("utf-8");
 
             if (response.ContentEncoding.ToLower().Contains("gzip"))
             {
@@ -80,11 +70,11 @@ namespace nelke
             System.IO.StreamReader reader = null;
             if (_requestState.response.ContentEncoding.ToLower().Contains("gzip"))
             {
-                reader = new System.IO.StreamReader(new GZipStream(_requestState.response.GetResponseStream(), CompressionMode.Decompress), _requestState.requestEncoding);
+                reader = new System.IO.StreamReader(new GZipStream(_requestState.response.GetResponseStream(), CompressionMode.Decompress), requestEncoding);
             }
             else
             {
-                reader = new System.IO.StreamReader(_requestState.response.GetResponseStream(), _requestState.requestEncoding);
+                reader = new System.IO.StreamReader(_requestState.response.GetResponseStream(), requestEncoding);
             }
             _requestState.body = reader.ReadToEnd();
             return _requestState.body;
@@ -103,21 +93,20 @@ namespace nelke
                 myRequestState.request = WebRequest.Create(@"http://ticket.nelke.cn/nelke/member/login") as HttpWebRequest;
                 myRequestState.request.ProtocolVersion = HttpVersion.Version11;
                 myRequestState.request.Method = "POST";
-                myRequestState.headers = myRequestState.request.Headers;
-                myRequestState.headers.Add("Origin", "http://ticket.nelke.cn");
+                myRequestState.request.Headers.Add("Origin", "http://ticket.nelke.cn");
                 myRequestState.request.Referer = @"http://ticket.nelke.cn/nelke/ticket/pc/login.jsp";
-                myRequestState.headers.Add("Accept-Language", "zh-Hans-CN,zh-Hans;q=0.5");
+                myRequestState.request.Headers.Add("Accept-Language", "zh-Hans-CN,zh-Hans;q=0.5");
                 myRequestState.request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299";
                 myRequestState.request.ContentType = @"application/x-www-form-urlencoded; charset=UTF-8";
                 myRequestState.request.Accept = "application/json, text/javascript, */*; q=0.01";
-                myRequestState.request.CookieContainer = myRequestState.cookieContainer;
+                myRequestState.request.CookieContainer = cookieContainer;
 
                 StringBuilder buffer = new StringBuilder();
                 buffer.AppendFormat("{0}={1}", "loginName", strAccount);
                 buffer.AppendFormat("&{0}={1}", "password", strPassword);
                 buffer.AppendFormat("&{0}={1}", "identifyingCode", "");
                 buffer.AppendFormat("&{0}={1}", "remember", "false");
-                Byte[] data = myRequestState.requestEncoding.GetBytes(buffer.ToString());
+                Byte[] data = requestEncoding.GetBytes(buffer.ToString());
                 using (Stream stream = myRequestState.request.GetRequestStream())
                 {
                     stream.Write(data, 0, data.Length);
@@ -173,6 +162,8 @@ namespace nelke
             allDone = new ManualResetEvent(false);
             bLoginSuccess = false;
             requestState = new RequestState();
+            cookieContainer = new CookieContainer();
+            requestEncoding = Encoding.GetEncoding("utf-8");
 
             int nLoginTimes = 1;
             while(true)
@@ -186,12 +177,11 @@ namespace nelke
                     requestState.request = WebRequest.Create(@"http://ticket.nelke.cn/nelke/ticket/pc/login.jsp ") as HttpWebRequest;
                     requestState.request.ProtocolVersion = HttpVersion.Version11;
                     requestState.request.Method = "GET";
-                    requestState.headers = requestState.request.Headers;
                     requestState.request.Accept = "text/html, application/xhtml+xml, image/jxr, */*";
-                    requestState.headers.Add("Accept-Language", "zh-Hans-CN,zh-Hans;q=0.5");
+                    requestState.request.Headers.Add("Accept-Language", "zh-Hans-CN,zh-Hans;q=0.5");
                     requestState.request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299";
-                    requestState.headers.Add("Accept-Encoding", "gzip, deflate"); 
-                    requestState.request.CookieContainer = requestState.cookieContainer;
+                    requestState.request.Headers.Add("Accept-Encoding", "gzip, deflate"); 
+                    requestState.request.CookieContainer = cookieContainer;
                     IAsyncResult result = (IAsyncResult)requestState.request.BeginGetResponse(new AsyncCallback(RespFirstCallback), requestState);
                     allDone.WaitOne();
                 }
@@ -228,19 +218,26 @@ namespace nelke
                     Thread.Sleep(1);
             }
 
+
+
         }
     };
+
+    class TicketData
+    {
+        public List<int> productId = new List<int>();
+        public int quantity = 0;
+    }
 
     class AllPlayers
     {
         public static bool bSetProxy = false;
-        public static string strURL = @"";
-        public static string strSkuid = @"";
-        public static string strSkuid2 = @"";
-        public static string strActTime = @"";
         public static int nInterval = 1000;
         public static DateTime dtStartTime;
         public static DateTime dtEndTime;
+        public static int nId;
+        public static int nRegion;
+        public static List<TicketData> listTicketData = new List<TicketData>();
         public static List<Player> listPlayer = new List<Player>();
 
         public static void Init()
@@ -252,15 +249,23 @@ namespace nelke
             JObject joInfo = (JObject)JsonConvert.DeserializeObject(arrayConfig[0]);
             dtStartTime = DateTime.Parse((string)joInfo["StartTime"]);
             dtEndTime = DateTime.Parse((string)joInfo["EndTime"]);
-            strSkuid = (string)joInfo["skuid"];
-            strSkuid2 = (string)joInfo["skuid2"];
-            strActTime = (string)joInfo["actTime"];
-            nInterval = (int)joInfo["interval"];
-            strURL = (string)joInfo["URL"];
-            if ((string)joInfo["SetProxy"] == @"0")
-                bSetProxy = false;
-            else
-                bSetProxy = true;
+            nId = (int)joInfo["id"];
+            nRegion = (int)joInfo["region"];
+            listTicketData = new List<TicketData>();
+            JArray jaData = (JArray)joInfo["data"];
+            foreach (JObject ticket in jaData)
+            {
+                TicketData ticketData = new TicketData();
+                JArray jaProductId = (JArray)ticket["productId"];
+                foreach (JToken id in jaProductId)
+                {
+                    ticketData.productId.Add((int)id);                
+                }
+                ticketData.quantity = (int)ticket["quantity"];
+                listTicketData.Add(ticketData);
+            }
+
+
             Program.form1.Form1_Init();
 
             listPlayer = new List<Player>();

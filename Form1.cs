@@ -15,12 +15,16 @@ namespace nelke
     {
         Telephone = 0,
         Login,
-        Detail,
-        GetCode,
-        SendCoupon,
-        Detail2,
-        GetCode2,
-        SendCoupon2
+        Buy1,
+        Confirm1,
+        Buy2,
+        Confirm2, 
+        Buy3,
+        Confirm3,
+        Buy4,
+        Confirm4,
+        Buy5,
+        Confirm5,
     };
     
     
