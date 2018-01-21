@@ -184,7 +184,10 @@ namespace nelke
                     if (string.Compare((string)joBody["code"], "1", true) == 0)
                     {
                         jaAddress = (JArray)((JObject)joBody["data"])["address_info"];
-                        Program.form1.UpdateDataGridView(strAccount, Column.Address, "成功");
+                        if(jaAddress.Count() == 0)
+                            Program.form1.UpdateDataGridView(strAccount, Column.Address, "没有地址");
+                        else
+                            Program.form1.UpdateDataGridView(strAccount, Column.Address, "成功");
                         bAddressSuccess = true;
                     }
                 }
@@ -406,6 +409,8 @@ namespace nelke
                 }
             }
 
+            if (jaAddress.Count() == 0)
+                return;
 
             while ((DateTime.Now < AllPlayers.dtStartTime))
             {
@@ -418,6 +423,7 @@ namespace nelke
                 else
                     Thread.Sleep(1);
             }
+
 
             int nBuyTimes = 1;
             listShowFinish = new List<bool>();
