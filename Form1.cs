@@ -15,6 +15,7 @@ namespace nelke
     {
         Telephone = 0,
         Login,
+        Address,
         Buy1,
         Confirm1,
         Buy2,

@@ -40,11 +40,13 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle13 = new System.Windows.Forms.DataGridViewCellStyle();
             this.richTextBoxStatus = new System.Windows.Forms.RichTextBox();
             this.dataGridViewInfo = new System.Windows.Forms.DataGridView();
             this.button1 = new System.Windows.Forms.Button();
             this.Telephone = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Login = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Address = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Buy1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Confirm1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Buy2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -72,6 +74,7 @@
             this.dataGridViewInfo.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Telephone,
             this.Login,
+            this.Address,
             this.Buy1,
             this.Confirm1,
             this.Buy2,
@@ -115,10 +118,19 @@
             this.Login.ReadOnly = true;
             this.Login.Width = 120;
             // 
-            // Buy1
+            // Address
             // 
             dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.Buy1.DefaultCellStyle = dataGridViewCellStyle3;
+            this.Address.DefaultCellStyle = dataGridViewCellStyle3;
+            this.Address.HeaderText = "Address";
+            this.Address.Name = "Address";
+            this.Address.ReadOnly = true;
+            this.Address.Width = 120;
+            // 
+            // Buy1
+            // 
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.Buy1.DefaultCellStyle = dataGridViewCellStyle4;
             this.Buy1.HeaderText = "Buy1";
             this.Buy1.Name = "Buy1";
             this.Buy1.ReadOnly = true;
@@ -126,8 +138,8 @@
             // 
             // Confirm1
             // 
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.Confirm1.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.Confirm1.DefaultCellStyle = dataGridViewCellStyle5;
             this.Confirm1.HeaderText = "Confirm1";
             this.Confirm1.Name = "Confirm1";
             this.Confirm1.ReadOnly = true;
@@ -135,8 +147,8 @@
             // 
             // Buy2
             // 
-            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.Buy2.DefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.Buy2.DefaultCellStyle = dataGridViewCellStyle6;
             this.Buy2.HeaderText = "Buy2";
             this.Buy2.Name = "Buy2";
             this.Buy2.ReadOnly = true;
@@ -144,8 +156,8 @@
             // 
             // Confirm2
             // 
-            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.Confirm2.DefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.Confirm2.DefaultCellStyle = dataGridViewCellStyle7;
             this.Confirm2.HeaderText = "Confirm2";
             this.Confirm2.Name = "Confirm2";
             this.Confirm2.ReadOnly = true;
@@ -153,8 +165,8 @@
             // 
             // Buy3
             // 
-            dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.Buy3.DefaultCellStyle = dataGridViewCellStyle7;
+            dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.Buy3.DefaultCellStyle = dataGridViewCellStyle8;
             this.Buy3.HeaderText = "Buy3";
             this.Buy3.Name = "Buy3";
             this.Buy3.ReadOnly = true;
@@ -162,8 +174,8 @@
             // 
             // Confirm3
             // 
-            dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.Confirm3.DefaultCellStyle = dataGridViewCellStyle8;
+            dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.Confirm3.DefaultCellStyle = dataGridViewCellStyle9;
             this.Confirm3.HeaderText = "Confirm3";
             this.Confirm3.Name = "Confirm3";
             this.Confirm3.ReadOnly = true;
@@ -171,8 +183,8 @@
             // 
             // Buy4
             // 
-            dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.Buy4.DefaultCellStyle = dataGridViewCellStyle9;
+            dataGridViewCellStyle10.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.Buy4.DefaultCellStyle = dataGridViewCellStyle10;
             this.Buy4.HeaderText = "Buy4";
             this.Buy4.Name = "Buy4";
             this.Buy4.ReadOnly = true;
@@ -180,8 +192,8 @@
             // 
             // Confirm4
             // 
-            dataGridViewCellStyle10.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.Confirm4.DefaultCellStyle = dataGridViewCellStyle10;
+            dataGridViewCellStyle11.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.Confirm4.DefaultCellStyle = dataGridViewCellStyle11;
             this.Confirm4.HeaderText = "Confirm4";
             this.Confirm4.Name = "Confirm4";
             this.Confirm4.ReadOnly = true;
@@ -189,8 +201,8 @@
             // 
             // Buy5
             // 
-            dataGridViewCellStyle11.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.Buy5.DefaultCellStyle = dataGridViewCellStyle11;
+            dataGridViewCellStyle12.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.Buy5.DefaultCellStyle = dataGridViewCellStyle12;
             this.Buy5.HeaderText = "Buy5";
             this.Buy5.Name = "Buy5";
             this.Buy5.ReadOnly = true;
@@ -198,8 +210,8 @@
             // 
             // Confirm5
             // 
-            dataGridViewCellStyle12.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.Confirm5.DefaultCellStyle = dataGridViewCellStyle12;
+            dataGridViewCellStyle13.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.Confirm5.DefaultCellStyle = dataGridViewCellStyle13;
             this.Confirm5.HeaderText = "Confirm5";
             this.Confirm5.Name = "Confirm5";
             this.Confirm5.ReadOnly = true;
@@ -228,6 +240,7 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.DataGridViewTextBoxColumn Telephone;
         private System.Windows.Forms.DataGridViewTextBoxColumn Login;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Address;
         private System.Windows.Forms.DataGridViewTextBoxColumn Buy1;
         private System.Windows.Forms.DataGridViewTextBoxColumn Confirm1;
         private System.Windows.Forms.DataGridViewTextBoxColumn Buy2;
