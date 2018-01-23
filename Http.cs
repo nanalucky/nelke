@@ -317,6 +317,65 @@ namespace nelke
             }
         }
 
+
+        private void RespNoneCallback(IAsyncResult asynchronousResult)
+        {
+            try
+            {
+                // State of request is asynchronous.
+                RequestState myRequestState = (RequestState)asynchronousResult.AsyncState;
+                HttpWebRequest myHttpWebRequest = myRequestState.request;
+                myRequestState.response = (HttpWebResponse)myHttpWebRequest.EndGetResponse(asynchronousResult);
+                return;
+            }
+            catch (WebException e)
+            {
+                Console.WriteLine("\nRespCallback Exception raised!");
+                Console.WriteLine("\nMessage:{0}", e.Message);
+                Console.WriteLine("\nStatus:{0}", e.Status);
+            }
+        }
+
+        void SendHeartBeat()
+        {
+            int nInterval = 60000 * 2;
+            DateTime lastTime = DateTime.Now;
+            while ((DateTime.Now < AllPlayers.dtEndTime))
+            {
+                if ((DateTime.Now - lastTime).TotalMilliseconds > nInterval)
+                {
+                    lastTime = DateTime.Now;
+
+                    try
+                    {
+                        RequestState requestState = new RequestState();
+                        ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
+                        requestState.request = WebRequest.Create(@"http://ticket.nelke.cn/nelke/member/address/l ") as HttpWebRequest;
+                        requestState.request.ProtocolVersion = HttpVersion.Version11;
+                        requestState.request.Method = "GET";
+                        //requestState.request.Referer = "http://ticket.nelke.cn/nelke/ticket/pc/confirm.jsp";
+                        requestState.request.Headers.Add("Accept-Language", "zh-Hans-CN,zh-Hans;q=0.5");
+                        requestState.request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299";
+                        requestState.request.Accept = "application/json, text/javascript, */*; q=0.01";
+                        requestState.request.Headers.Add("X-Requested-With", "XMLHttpRequest");
+                        requestState.request.Headers.Add("Accept-Encoding", "gzip, deflate");
+                        requestState.request.CookieContainer = cookieContainer;
+                        IAsyncResult result = (IAsyncResult)requestState.request.BeginGetResponse(new AsyncCallback(RespNoneCallback), requestState);
+                    }
+                    catch (WebException e)
+                    {
+                        Console.WriteLine("\nRespCallback Exception raised!");
+                        Console.WriteLine("\nMessage:{0}", e.Message);
+                        Console.WriteLine("\nStatus:{0}", e.Status);
+                    }
+                }
+                else
+                {
+                    Thread.Sleep(nInterval);
+                }
+            }
+        }
+
         public void Run()
         {
             allDone = new ManualResetEvent(false);
@@ -357,12 +416,12 @@ namespace nelke
                     break;
                 }
                 nLoginTimes++;
-                if (nLoginTimes > 3)
+                if (nLoginTimes > 100)
                 {
                     Program.form1.UpdateDataGridView(strAccount, Column.Login, string.Format("放弃"));
                     return;
                 }
-                Thread.Sleep(500);
+                //Thread.Sleep(500);
             }
 
 
@@ -402,7 +461,7 @@ namespace nelke
                     break;
                 }
                 nAddressTimes++;
-                if (nAddressTimes > 10)
+                if (nAddressTimes > 100)
                 {
                     Program.form1.UpdateDataGridView(strAccount, Column.Address, string.Format("放弃"));
                     return;
@@ -411,6 +470,9 @@ namespace nelke
 
             if (jaAddress.Count() == 0)
                 return;
+
+            Thread threadHeart = new Thread(new ThreadStart(SendHeartBeat));
+            threadHeart.Start();
 
             while ((DateTime.Now < AllPlayers.dtStartTime))
             {
