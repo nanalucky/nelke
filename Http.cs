@@ -220,42 +220,6 @@ namespace nelke
                     if (string.Compare((string)joBody["code"], "1", true) == 0)
                     {
                         Program.form1.UpdateDataGridView(strAccount, Column.Buy1 + myRequestState.nShow * 2, string.Format("{0}:成功", myRequestState.nBuyTimes));
-
-                        // submit
-                        myRequestState.request = WebRequest.Create(@"http://ticket.nelke.cn/nelke/order/m/submit") as HttpWebRequest;
-                        myRequestState.request.ProtocolVersion = HttpVersion.Version11;
-                        myRequestState.request.Method = "POST";
-                        myRequestState.request.Headers.Add("Origin", "http://ticket.nelke.cn");
-                        myRequestState.request.Referer = @"http://ticket.nelke.cn/nelke/ticket/pc/confirm.jsp";
-                        myRequestState.request.Headers.Add("Accept-Language", "zh-Hans-CN,zh-Hans;q=0.5");
-                        myRequestState.request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299";
-                        myRequestState.request.ContentType = @"application/json";
-                        myRequestState.request.Accept = "application/json, text/javascript, */*; q=0.01";
-                        myRequestState.request.Headers.Add("X-Requested-With", "XMLHttpRequest");
-                        myRequestState.request.Headers.Add("Accept-Encoding", "gzip, deflate");
-                        myRequestState.request.Headers.Add("Pragma", "no-cache"); 
-                        myRequestState.request.CookieContainer = cookieContainer;
-
-                        JObject joParam = new JObject(
-                            new JProperty("paymentType", "2"),
-                            new JProperty("deliveryType", "1"),
-                            new JProperty("orderAddress", (JObject)(jaAddress[0])),
-                            new JProperty("id", "null"),
-                            new JProperty("userName", strUserName1),
-                            new JProperty("idType", "1"),
-                            new JProperty("idCard", strCard1),
-                            new JProperty("userName2", strUserName2),
-                            new JProperty("idType2", "1"),
-                            new JProperty("idCard2", strCard2)
-                        );
-                        StringBuilder buffer = new StringBuilder();
-                        buffer.AppendFormat("{0}", JsonConvert.SerializeObject(joParam));
-                        Byte[] data = requestEncoding.GetBytes(buffer.ToString());
-                        using (Stream stream = myRequestState.request.GetRequestStream())
-                        {
-                            stream.Write(data, 0, data.Length);
-                        }
-                        IAsyncResult result = (IAsyncResult)myRequestState.request.BeginGetResponse(new AsyncCallback(RespSubmitCallback), myRequestState);
                     }
                     else
                     {
@@ -281,7 +245,6 @@ namespace nelke
                 Console.WriteLine("\nRespCallback Exception raised!");
                 Console.WriteLine("\nMessage:{0}", e.Message);
                 Console.WriteLine("\nStatus:{0}", e.Status);
-                allDone.Set();
             }
         }
 
@@ -304,8 +267,6 @@ namespace nelke
                         Program.form1.UpdateDataGridView(strAccount, Column.Confirm1 + myRequestState.nShow * 2, string.Format("{0}:成功", myRequestState.nBuyTimes));
                     }
                 }
-
-                allDone.Set();
                 return;
             }
             catch (WebException e)
@@ -313,7 +274,6 @@ namespace nelke
                 Console.WriteLine("\nRespCallback Exception raised!");
                 Console.WriteLine("\nMessage:{0}", e.Message);
                 Console.WriteLine("\nStatus:{0}", e.Status);
-                allDone.Set();
             }
         }
 
@@ -539,6 +499,48 @@ namespace nelke
                         } 
                        
                         IAsyncResult result = (IAsyncResult)requestState.request.BeginGetResponse(new AsyncCallback(RespBuyCallback), requestState);
+
+
+                        ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
+                        requestState = new RequestState();
+                        requestState.nShow = nShow;
+                        requestState.nBuyTimes = nBuyTimes;
+                        requestState.request = WebRequest.Create(@"http://ticket.nelke.cn/nelke/order/m/submit") as HttpWebRequest;
+                        requestState.request.ProtocolVersion = HttpVersion.Version11;
+                        requestState.request.Method = "POST";
+                        requestState.request.Headers.Add("Origin", "http://ticket.nelke.cn");
+                        requestState.request.Referer = @"http://ticket.nelke.cn/nelke/ticket/pc/confirm.jsp";
+                        requestState.request.Headers.Add("Accept-Language", "zh-Hans-CN,zh-Hans;q=0.5");
+                        requestState.request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299";
+                        requestState.request.ContentType = @"application/json";
+                        requestState.request.Accept = "application/json, text/javascript, */*; q=0.01";
+                        requestState.request.Headers.Add("X-Requested-With", "XMLHttpRequest");
+                        requestState.request.Headers.Add("Accept-Encoding", "gzip, deflate");
+                        requestState.request.Headers.Add("Pragma", "no-cache");
+                        requestState.request.CookieContainer = cookieContainer;
+
+                        JObject joParam = new JObject(
+                            new JProperty("paymentType", "2"),
+                            new JProperty("deliveryType", "1"),
+                            new JProperty("orderAddress", (JObject)(jaAddress[0])),
+                            new JProperty("id", "null"),
+                            new JProperty("userName", strUserName1),
+                            new JProperty("idType", "1"),
+                            new JProperty("idCard", strCard1),
+                            new JProperty("userName2", strUserName2),
+                            new JProperty("idType2", "1"),
+                            new JProperty("idCard2", strCard2)
+                        );
+                        buffer = new StringBuilder();
+                        buffer.AppendFormat("{0}", JsonConvert.SerializeObject(joParam));
+                        data = requestEncoding.GetBytes(buffer.ToString());
+                        using (Stream stream = requestState.request.GetRequestStream())
+                        {
+                            stream.Write(data, 0, data.Length);
+                        }
+                        result = (IAsyncResult)requestState.request.BeginGetResponse(new AsyncCallback(RespSubmitCallback), requestState);
+                    
+                    
                     }
                     catch (WebException e)
                     {
