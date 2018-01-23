@@ -46,7 +46,6 @@ namespace nelke
         public string strCard1 = @"";
         public string strUserName2 = @"";
         public string strCard2 = @"";
-        public List<bool> listShowFinish = new List<bool>();
         public List<int> listShowTicketIndex = new List<int>();
 
         public int nIndex = 0;
@@ -204,6 +203,30 @@ namespace nelke
             }
         }
 
+        private void BuyRequestStreamCallback(IAsyncResult asynchronousResult)
+        {
+            try
+            {
+                // State of request is asynchronous.
+                RequestState myRequestState = (RequestState)asynchronousResult.AsyncState;
+                Stream stream = myRequestState.request.EndGetRequestStream(asynchronousResult);
+
+                StringBuilder buffer = new StringBuilder();
+                buffer.AppendFormat(@"[{{""productId"":{0},""quantity"":""{1}""}}]", AllPlayers.listTicketData[myRequestState.nShow].productId[listShowTicketIndex[myRequestState.nShow]], (strUserName2 != "") ? AllPlayers.listTicketData[myRequestState.nShow].quantity : 1);
+                Byte[] data = requestEncoding.GetBytes(buffer.ToString());
+                stream.Write(data, 0, data.Length);
+                stream.Close();
+
+                IAsyncResult result = (IAsyncResult)myRequestState.request.BeginGetResponse(new AsyncCallback(RespBuyCallback), myRequestState);            
+            }
+            catch (WebException e)
+            {
+                Console.WriteLine("\nRespCallback Exception raised!");
+                Console.WriteLine("\nMessage:{0}", e.Message);
+                Console.WriteLine("\nStatus:{0}", e.Status);
+            }
+        }
+
         private void RespBuyCallback(IAsyncResult asynchronousResult)
         {
             try
@@ -224,10 +247,6 @@ namespace nelke
                     else
                     {
                         Program.form1.UpdateDataGridView(strAccount, Column.Buy1 + myRequestState.nShow * 2, string.Format("{0}:{1}:{2}", myRequestState.nBuyTimes, (string)joBody["code"], (string)joBody["msg"]));
-                        if ((string)joBody["code"] == "E005")
-                        {
-                            listShowFinish[myRequestState.nShow] = true;
-                        }
                         if ((string)joBody["code"] == "E001")
                         {
                             int nShow = myRequestState.nShow;
@@ -248,6 +267,40 @@ namespace nelke
             }
         }
 
+        private void SubmitRequestStreamCallback(IAsyncResult asynchronousResult)
+        {
+            try
+            {
+                // State of request is asynchronous.
+                RequestState myRequestState = (RequestState)asynchronousResult.AsyncState;
+                Stream stream = myRequestState.request.EndGetRequestStream(asynchronousResult);
+
+                JObject joParam = new JObject(
+                    new JProperty("paymentType", "2"),
+                    new JProperty("deliveryType", "1"),
+                    new JProperty("orderAddress", (JObject)(jaAddress[0])),
+                    new JProperty("id", "null"),
+                    new JProperty("userName", strUserName1),
+                    new JProperty("idType", "1"),
+                    new JProperty("idCard", strCard1),
+                    new JProperty("userName2", strUserName2),
+                    new JProperty("idType2", "1"),
+                    new JProperty("idCard2", strCard2)
+                );
+                StringBuilder buffer = new StringBuilder();
+                buffer.AppendFormat("{0}", JsonConvert.SerializeObject(joParam));
+                Byte[] data = requestEncoding.GetBytes(buffer.ToString());
+                stream.Write(data, 0, data.Length);
+                stream.Close();
+                IAsyncResult result = (IAsyncResult)myRequestState.request.BeginGetResponse(new AsyncCallback(RespSubmitCallback), myRequestState);
+            }
+            catch (WebException e)
+            {
+                Console.WriteLine("\nRespCallback Exception raised!");
+                Console.WriteLine("\nMessage:{0}", e.Message);
+                Console.WriteLine("\nStatus:{0}", e.Status);
+            }
+        }
 
         private void RespSubmitCallback(IAsyncResult asynchronousResult)
         {
@@ -448,13 +501,11 @@ namespace nelke
 
 
             int nBuyTimes = 1;
-            listShowFinish = new List<bool>();
             listShowTicketIndex = new List<int>();
             for (int nShow = 0; nShow < AllPlayers.listTicketData.Count(); nShow++)
             {
                 int nProductId = nIndex % AllPlayers.listTicketData[nShow].productId.Count();
                 listShowTicketIndex.Add(nProductId);
-                listShowFinish.Add(false);
             }
             
             while ((DateTime.Now <= AllPlayers.dtEndTime))
@@ -462,11 +513,6 @@ namespace nelke
 
                 for (int nShow = 0; nShow < AllPlayers.listTicketData.Count(); nShow++)
                 {
-                    if (listShowFinish[nShow])
-                    {
-                        continue;
-                    }
-
                     try
                     {
                         int nProductId = listShowTicketIndex[nShow];
@@ -490,16 +536,7 @@ namespace nelke
                         requestState.request.Headers.Add("Pragma", "no-cache");
                         requestState.request.CookieContainer = cookieContainer;
 
-                        StringBuilder buffer = new StringBuilder();
-                        buffer.AppendFormat(@"[{{""productId"":{0},""quantity"":""{1}""}}]", AllPlayers.listTicketData[nShow].productId[nProductId], (strUserName2 != "") ? AllPlayers.listTicketData[nShow].quantity : 1);
-                        Byte[] data = requestEncoding.GetBytes(buffer.ToString());
-                        using (Stream stream = requestState.request.GetRequestStream())
-                        {
-                            stream.Write(data, 0, data.Length);
-                        } 
-                       
-                        IAsyncResult result = (IAsyncResult)requestState.request.BeginGetResponse(new AsyncCallback(RespBuyCallback), requestState);
-
+                        IAsyncResult result = requestState.request.BeginGetRequestStream(new AsyncCallback(BuyRequestStreamCallback), requestState);
 
                         ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
                         requestState = new RequestState();
@@ -519,28 +556,7 @@ namespace nelke
                         requestState.request.Headers.Add("Pragma", "no-cache");
                         requestState.request.CookieContainer = cookieContainer;
 
-                        JObject joParam = new JObject(
-                            new JProperty("paymentType", "2"),
-                            new JProperty("deliveryType", "1"),
-                            new JProperty("orderAddress", (JObject)(jaAddress[0])),
-                            new JProperty("id", "null"),
-                            new JProperty("userName", strUserName1),
-                            new JProperty("idType", "1"),
-                            new JProperty("idCard", strCard1),
-                            new JProperty("userName2", strUserName2),
-                            new JProperty("idType2", "1"),
-                            new JProperty("idCard2", strCard2)
-                        );
-                        buffer = new StringBuilder();
-                        buffer.AppendFormat("{0}", JsonConvert.SerializeObject(joParam));
-                        data = requestEncoding.GetBytes(buffer.ToString());
-                        using (Stream stream = requestState.request.GetRequestStream())
-                        {
-                            stream.Write(data, 0, data.Length);
-                        }
-                        result = (IAsyncResult)requestState.request.BeginGetResponse(new AsyncCallback(RespSubmitCallback), requestState);
-                    
-                    
+                        result = requestState.request.BeginGetRequestStream(new AsyncCallback(SubmitRequestStreamCallback), requestState);
                     }
                     catch (WebException e)
                     {
