@@ -46,7 +46,6 @@ namespace nelke
         public string strCard1 = @"";
         public string strUserName2 = @"";
         public string strCard2 = @"";
-        public List<int> listShowTicketIndex = new List<int>();
 
         public int nIndex = 0;
         public Thread thread;
@@ -211,8 +210,20 @@ namespace nelke
                 RequestState myRequestState = (RequestState)asynchronousResult.AsyncState;
                 Stream stream = myRequestState.request.EndGetRequestStream(asynchronousResult);
 
+                List<int> listProductId = AllPlayers.listTicketData[myRequestState.nShow].productId;
+                JArray jaData = new JArray();
+                for(int i = 0; i < listProductId.Count(); i++)
+                {
+                    jaData.Add(new JObject(
+                        new JProperty("productId", listProductId[i]),
+                        new JProperty("quantity", Convert.ToString((strUserName2 != "") ? AllPlayers.listTicketData[myRequestState.nShow].quantity : 1))
+                        ));                
+                }
+                string strData = JsonConvert.SerializeObject(jaData);
+
                 StringBuilder buffer = new StringBuilder();
-                buffer.AppendFormat(@"[{{""productId"":{0},""quantity"":""{1}""}}]", AllPlayers.listTicketData[myRequestState.nShow].productId[listShowTicketIndex[myRequestState.nShow]], (strUserName2 != "") ? AllPlayers.listTicketData[myRequestState.nShow].quantity : 1);
+                //buffer.AppendFormat(@"[{{""productId"":{0},""quantity"":""{1}""}}]", AllPlayers.listTicketData[myRequestState.nShow].productId[listShowTicketIndex[myRequestState.nShow]], (strUserName2 != "") ? AllPlayers.listTicketData[myRequestState.nShow].quantity : 1);
+                buffer.AppendFormat("{0}", strData);
                 Byte[] data = requestEncoding.GetBytes(buffer.ToString());
                 stream.Write(data, 0, data.Length);
                 stream.Close();
@@ -247,11 +258,6 @@ namespace nelke
                     else
                     {
                         Program.form1.UpdateDataGridView(strAccount, Column.Buy1 + myRequestState.nShow * 2, string.Format("{0}:{1}:{2}", myRequestState.nBuyTimes, (string)joBody["code"], (string)joBody["msg"]));
-                        if ((string)joBody["code"] == "E001")
-                        {
-                            int nShow = myRequestState.nShow;
-                            listShowTicketIndex[nShow] = (listShowTicketIndex[nShow] + 1) % AllPlayers.listTicketData[nShow].productId.Count();
-                        }                    
                     }
                 }
                 else 
@@ -501,13 +507,6 @@ namespace nelke
 
 
             int nBuyTimes = 1;
-            listShowTicketIndex = new List<int>();
-            for (int nShow = 0; nShow < AllPlayers.listTicketData.Count(); nShow++)
-            {
-                int nProductId = nIndex % AllPlayers.listTicketData[nShow].productId.Count();
-                listShowTicketIndex.Add(nProductId);
-            }
-            
             while ((DateTime.Now <= AllPlayers.dtEndTime))
             {
 
@@ -515,9 +514,7 @@ namespace nelke
                 {
                     try
                     {
-                        int nProductId = listShowTicketIndex[nShow];
-
-                        Program.form1.UpdateDataGridView(strAccount, Column.Buy1 + nShow * 2, string.Format("{0}:{1}", nBuyTimes, AllPlayers.listTicketData[nShow].productId[nProductId]));
+                        Program.form1.UpdateDataGridView(strAccount, Column.Buy1 + nShow * 2, string.Format("{0}:{1}", nBuyTimes, AllPlayers.listTicketData[nShow].productId[0]));
                         ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
                         RequestState requestState = new RequestState();
                         requestState.nShow = nShow;
