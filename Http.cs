@@ -111,7 +111,6 @@ namespace nelke
                 myRequestState.response = (HttpWebResponse)myHttpWebRequest.EndGetResponse(asynchronousResult);
                 myRequestState.ClearConnect();
 
-                //ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
                 myRequestState.request = WebRequest.Create(@"http://ticket.nelke.cn/nelke/member/login") as HttpWebRequest;
                 myRequestState.request.ProtocolVersion = HttpVersion.Version11;
                 myRequestState.request.Method = "POST";
@@ -389,7 +388,6 @@ namespace nelke
                     try
                     {
                         RequestState requestState = new RequestState();
-                        //ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
                         requestState.request = WebRequest.Create(@"http://ticket.nelke.cn/nelke/member/address/l ") as HttpWebRequest;
                         requestState.request.ProtocolVersion = HttpVersion.Version11;
                         requestState.request.Method = "GET";
@@ -432,7 +430,6 @@ namespace nelke
                     allDone.Reset();
 
                     RequestState requestState = new RequestState();
-                    //ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
                     requestState.request = WebRequest.Create(@"http://ticket.nelke.cn/nelke/ticket/pc/login.jsp ") as HttpWebRequest;
                     requestState.request.ProtocolVersion = HttpVersion.Version11;
                     requestState.request.Method = "GET";
@@ -475,7 +472,6 @@ namespace nelke
                     allDone.Reset();
 
                     RequestState requestState = new RequestState();
-                    //ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
                     requestState.request = WebRequest.Create(@"http://ticket.nelke.cn/nelke/member/address/l ") as HttpWebRequest;
                     requestState.request.ProtocolVersion = HttpVersion.Version11;
                     requestState.request.Method = "GET";
@@ -536,7 +532,6 @@ namespace nelke
                     try
                     {
                         Program.form1.UpdateDataGridView(strAccount, Column.Buy1 + nShow * 2, string.Format("{0}:{1}", nBuyTimes, AllPlayers.listTicketData[nShow].productId[0]));
-                        //ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
                         RequestState requestState = new RequestState();
                         requestState.nShow = nShow;
                         requestState.nBuyTimes = nBuyTimes;
@@ -556,7 +551,6 @@ namespace nelke
 
                         IAsyncResult result = requestState.request.BeginGetRequestStream(new AsyncCallback(BuyRequestStreamCallback), requestState);
 
-                        //ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
                         requestState = new RequestState();
                         requestState.nShow = nShow;
                         requestState.nBuyTimes = nBuyTimes;
