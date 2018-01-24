@@ -36,6 +36,17 @@ namespace nelke
             nShow = 0;
             nBuyTimes = 0;
         }
+
+        public void ClearConnect()
+        {
+            if(response != null)
+                response.Close();
+            if (request != null)
+                request.Abort();
+            response = null;
+            request = null;
+            System.GC.Collect();
+        }
     }
     
     class Player
@@ -98,11 +109,7 @@ namespace nelke
                 RequestState myRequestState = (RequestState)asynchronousResult.AsyncState;
                 HttpWebRequest myHttpWebRequest = myRequestState.request;
                 myRequestState.response = (HttpWebResponse)myHttpWebRequest.EndGetResponse(asynchronousResult);
-                myRequestState.response.Close();
-                myRequestState.request.Abort();
-                myRequestState.response = null;
-                myRequestState.request = null;
-                System.GC.Collect();
+                myRequestState.ClearConnect();
 
                 //ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
                 myRequestState.request = WebRequest.Create(@"http://ticket.nelke.cn/nelke/member/login") as HttpWebRequest;
@@ -149,11 +156,7 @@ namespace nelke
                 myRequestState.response = (HttpWebResponse)myHttpWebRequest.EndGetResponse(asynchronousResult);
 
                 GetBody(myRequestState);
-                myRequestState.response.Close();
-                myRequestState.request.Abort();
-                myRequestState.response = null;
-                myRequestState.request = null;
-                System.GC.Collect();
+                myRequestState.ClearConnect(); 
 
                 if (myRequestState.body.IndexOf("code") >= 0)
                 {
@@ -187,12 +190,7 @@ namespace nelke
                 myRequestState.response = (HttpWebResponse)myHttpWebRequest.EndGetResponse(asynchronousResult);
 
                 GetBody(myRequestState);
-                myRequestState.response.Close();
-                myRequestState.request.Abort();
-                myRequestState.response = null;
-                myRequestState.request = null;
-                System.GC.Collect();
-
+                myRequestState.ClearConnect();
 
                 if (myRequestState.body.IndexOf("code") >= 0)
                 {
@@ -266,11 +264,7 @@ namespace nelke
                 myRequestState.response = (HttpWebResponse)myHttpWebRequest.EndGetResponse(asynchronousResult);
 
                 GetBody(myRequestState);
-                myRequestState.response.Close();
-                myRequestState.request.Abort();
-                myRequestState.response = null;
-                myRequestState.request = null;
-                System.GC.Collect();
+                myRequestState.ClearConnect();
 
                 if (myRequestState.body.IndexOf("code") >= 0)
                 {
@@ -342,12 +336,8 @@ namespace nelke
                 myRequestState.response = (HttpWebResponse)myHttpWebRequest.EndGetResponse(asynchronousResult);
 
                 GetBody(myRequestState);
-                myRequestState.response.Close();
-                myRequestState.request.Abort();
-                myRequestState.response = null;
-                myRequestState.request = null;
-                System.GC.Collect();
-
+                myRequestState.ClearConnect();
+                
                 if (myRequestState.body.IndexOf("code") >= 0)
                 {
                     JObject joBody = (JObject)JsonConvert.DeserializeObject(myRequestState.body);
@@ -375,11 +365,7 @@ namespace nelke
                 RequestState myRequestState = (RequestState)asynchronousResult.AsyncState;
                 HttpWebRequest myHttpWebRequest = myRequestState.request;
                 myRequestState.response = (HttpWebResponse)myHttpWebRequest.EndGetResponse(asynchronousResult);
-                myRequestState.response.Close();
-                myRequestState.request.Abort();
-                myRequestState.response = null;
-                myRequestState.request = null;
-                System.GC.Collect();
+                myRequestState.ClearConnect(); 
                 return;
             }
             catch (WebException e)
