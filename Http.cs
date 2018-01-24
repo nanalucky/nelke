@@ -98,8 +98,13 @@ namespace nelke
                 RequestState myRequestState = (RequestState)asynchronousResult.AsyncState;
                 HttpWebRequest myHttpWebRequest = myRequestState.request;
                 myRequestState.response = (HttpWebResponse)myHttpWebRequest.EndGetResponse(asynchronousResult);
+                myRequestState.response.Close();
+                myRequestState.request.Abort();
+                myRequestState.response = null;
+                myRequestState.request = null;
+                System.GC.Collect();
 
-                ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
+                //ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
                 myRequestState.request = WebRequest.Create(@"http://ticket.nelke.cn/nelke/member/login") as HttpWebRequest;
                 myRequestState.request.ProtocolVersion = HttpVersion.Version11;
                 myRequestState.request.Method = "POST";
@@ -126,7 +131,7 @@ namespace nelke
             }
             catch (WebException e)
             {
-                Console.WriteLine("\nRespCallback Exception raised!");
+                Console.WriteLine("\nRespFirstCallback Exception raised!");
                 Console.WriteLine("\nMessage:{0}", e.Message);
                 Console.WriteLine("\nStatus:{0}", e.Status);
                 allDone.Set();
@@ -144,6 +149,12 @@ namespace nelke
                 myRequestState.response = (HttpWebResponse)myHttpWebRequest.EndGetResponse(asynchronousResult);
 
                 GetBody(myRequestState);
+                myRequestState.response.Close();
+                myRequestState.request.Abort();
+                myRequestState.response = null;
+                myRequestState.request = null;
+                System.GC.Collect();
+
                 if (myRequestState.body.IndexOf("code") >= 0)
                 {
                     JObject joBody = (JObject)JsonConvert.DeserializeObject(myRequestState.body);
@@ -159,7 +170,7 @@ namespace nelke
             }
             catch (WebException e)
             {
-                Console.WriteLine("\nRespCallback Exception raised!");
+                Console.WriteLine("\nRespLoginCallback Exception raised!");
                 Console.WriteLine("\nMessage:{0}", e.Message);
                 Console.WriteLine("\nStatus:{0}", e.Status);
                 allDone.Set();
@@ -176,6 +187,13 @@ namespace nelke
                 myRequestState.response = (HttpWebResponse)myHttpWebRequest.EndGetResponse(asynchronousResult);
 
                 GetBody(myRequestState);
+                myRequestState.response.Close();
+                myRequestState.request.Abort();
+                myRequestState.response = null;
+                myRequestState.request = null;
+                System.GC.Collect();
+
+
                 if (myRequestState.body.IndexOf("code") >= 0)
                 {
                     JObject joBody = (JObject)JsonConvert.DeserializeObject(myRequestState.body);
@@ -195,7 +213,7 @@ namespace nelke
             }
             catch (WebException e)
             {
-                Console.WriteLine("\nRespCallback Exception raised!");
+                Console.WriteLine("\nRespAddressCallback Exception raised!");
                 Console.WriteLine("\nMessage:{0}", e.Message);
                 Console.WriteLine("\nStatus:{0}", e.Status);
                 allDone.Set();
@@ -232,7 +250,7 @@ namespace nelke
             }
             catch (WebException e)
             {
-                Console.WriteLine("\nRespCallback Exception raised!");
+                Console.WriteLine("\nBuyRequestStreamCallback Exception raised!");
                 Console.WriteLine("\nMessage:{0}", e.Message);
                 Console.WriteLine("\nStatus:{0}", e.Status);
             }
@@ -248,6 +266,12 @@ namespace nelke
                 myRequestState.response = (HttpWebResponse)myHttpWebRequest.EndGetResponse(asynchronousResult);
 
                 GetBody(myRequestState);
+                myRequestState.response.Close();
+                myRequestState.request.Abort();
+                myRequestState.response = null;
+                myRequestState.request = null;
+                System.GC.Collect();
+
                 if (myRequestState.body.IndexOf("code") >= 0)
                 {
                     JObject joBody = (JObject)JsonConvert.DeserializeObject(myRequestState.body);
@@ -267,7 +291,7 @@ namespace nelke
             }
             catch (WebException e)
             {
-                Console.WriteLine("\nRespCallback Exception raised!");
+                Console.WriteLine("\nRespBuyCallback Exception raised!");
                 Console.WriteLine("\nMessage:{0}", e.Message);
                 Console.WriteLine("\nStatus:{0}", e.Status);
             }
@@ -302,7 +326,7 @@ namespace nelke
             }
             catch (WebException e)
             {
-                Console.WriteLine("\nRespCallback Exception raised!");
+                Console.WriteLine("\nSubmitRequestStreamCallback Exception raised!");
                 Console.WriteLine("\nMessage:{0}", e.Message);
                 Console.WriteLine("\nStatus:{0}", e.Status);
             }
@@ -318,6 +342,12 @@ namespace nelke
                 myRequestState.response = (HttpWebResponse)myHttpWebRequest.EndGetResponse(asynchronousResult);
 
                 GetBody(myRequestState);
+                myRequestState.response.Close();
+                myRequestState.request.Abort();
+                myRequestState.response = null;
+                myRequestState.request = null;
+                System.GC.Collect();
+
                 if (myRequestState.body.IndexOf("code") >= 0)
                 {
                     JObject joBody = (JObject)JsonConvert.DeserializeObject(myRequestState.body);
@@ -330,7 +360,7 @@ namespace nelke
             }
             catch (WebException e)
             {
-                Console.WriteLine("\nRespCallback Exception raised!");
+                Console.WriteLine("\nRespSubmitCallback Exception raised!");
                 Console.WriteLine("\nMessage:{0}", e.Message);
                 Console.WriteLine("\nStatus:{0}", e.Status);
             }
@@ -345,11 +375,16 @@ namespace nelke
                 RequestState myRequestState = (RequestState)asynchronousResult.AsyncState;
                 HttpWebRequest myHttpWebRequest = myRequestState.request;
                 myRequestState.response = (HttpWebResponse)myHttpWebRequest.EndGetResponse(asynchronousResult);
+                myRequestState.response.Close();
+                myRequestState.request.Abort();
+                myRequestState.response = null;
+                myRequestState.request = null;
+                System.GC.Collect();
                 return;
             }
             catch (WebException e)
             {
-                Console.WriteLine("\nRespCallback Exception raised!");
+                Console.WriteLine("\nRespNoneCallback Exception raised!");
                 Console.WriteLine("\nMessage:{0}", e.Message);
                 Console.WriteLine("\nStatus:{0}", e.Status);
             }
@@ -368,7 +403,7 @@ namespace nelke
                     try
                     {
                         RequestState requestState = new RequestState();
-                        ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
+                        //ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
                         requestState.request = WebRequest.Create(@"http://ticket.nelke.cn/nelke/member/address/l ") as HttpWebRequest;
                         requestState.request.ProtocolVersion = HttpVersion.Version11;
                         requestState.request.Method = "GET";
@@ -383,7 +418,7 @@ namespace nelke
                     }
                     catch (WebException e)
                     {
-                        Console.WriteLine("\nRespCallback Exception raised!");
+                        Console.WriteLine("\nSendHeartBeat Exception raised!");
                         Console.WriteLine("\nMessage:{0}", e.Message);
                         Console.WriteLine("\nStatus:{0}", e.Status);
                     }
@@ -411,7 +446,7 @@ namespace nelke
                     allDone.Reset();
 
                     RequestState requestState = new RequestState();
-                    ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
+                    //ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
                     requestState.request = WebRequest.Create(@"http://ticket.nelke.cn/nelke/ticket/pc/login.jsp ") as HttpWebRequest;
                     requestState.request.ProtocolVersion = HttpVersion.Version11;
                     requestState.request.Method = "GET";
@@ -425,7 +460,7 @@ namespace nelke
                 }
                 catch (WebException e)
                 {
-                    Console.WriteLine("\nRespCallback Exception raised!");
+                    Console.WriteLine("\nloginFirst Exception raised!");
                     Console.WriteLine("\nMessage:{0}", e.Message);
                     Console.WriteLine("\nStatus:{0}", e.Status);
                 }
@@ -454,7 +489,7 @@ namespace nelke
                     allDone.Reset();
 
                     RequestState requestState = new RequestState();
-                    ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
+                    //ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
                     requestState.request = WebRequest.Create(@"http://ticket.nelke.cn/nelke/member/address/l ") as HttpWebRequest;
                     requestState.request.ProtocolVersion = HttpVersion.Version11;
                     requestState.request.Method = "GET";
@@ -470,7 +505,7 @@ namespace nelke
                 }
                 catch (WebException e)
                 {
-                    Console.WriteLine("\nRespCallback Exception raised!");
+                    Console.WriteLine("\nAddressFirst Exception raised!");
                     Console.WriteLine("\nMessage:{0}", e.Message);
                     Console.WriteLine("\nStatus:{0}", e.Status);
                 }
@@ -515,7 +550,7 @@ namespace nelke
                     try
                     {
                         Program.form1.UpdateDataGridView(strAccount, Column.Buy1 + nShow * 2, string.Format("{0}:{1}", nBuyTimes, AllPlayers.listTicketData[nShow].productId[0]));
-                        ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
+                        //ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
                         RequestState requestState = new RequestState();
                         requestState.nShow = nShow;
                         requestState.nBuyTimes = nBuyTimes;
@@ -535,7 +570,7 @@ namespace nelke
 
                         IAsyncResult result = requestState.request.BeginGetRequestStream(new AsyncCallback(BuyRequestStreamCallback), requestState);
 
-                        ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
+                        //ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
                         requestState = new RequestState();
                         requestState.nShow = nShow;
                         requestState.nBuyTimes = nBuyTimes;
@@ -557,7 +592,7 @@ namespace nelke
                     }
                     catch (WebException e)
                     {
-                        Console.WriteLine("\nRespCallback Exception raised!");
+                        Console.WriteLine("\nBuyFirst Exception raised!");
                         Console.WriteLine("\nMessage:{0}", e.Message);
                         Console.WriteLine("\nStatus:{0}", e.Status);
                     }
@@ -652,6 +687,9 @@ namespace nelke
 
         public static void Run()
         {
+            ServicePointManager.DefaultConnectionLimit = int.MaxValue;
+            ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(Http.CheckValidationResult);
+
             foreach (Player player in listPlayer)
             {
                 player.thread.Start();
